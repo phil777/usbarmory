@@ -1,0 +1,44 @@
+#! /bin/bash
+
+set -e
+
+TARGET_DEV="${1}"
+TARGET_MNT=/mnt
+
+if [ "x$TARGET_DEV" == "x" ]
+then
+ echo "Usage: docker run -ti usbarmory-image-builder /dev/sdxx"
+ exit
+fi
+
+echo "Going to install to $TARGET_DEV"
+echo "Everything there will be deleted"
+read -p "Ok to continue (y/N) ? " ans
+if [ "$ans" != "y" ]; then echo "aborted."; exit; fi
+
+## Create partitions and filesystem
+echo "Creating partition table and first partition"
+parted $TARGET_DEV --script mklabel msdos
+parted $TARGET_DEV --script mkpart primary ext4 5M 100%
+echo "Formatting first partition"
+mkfs.ext4 ${TARGET_DEV}1
+
+## Install boot loader
+echo "Installing boot loader"
+cd /ua/u-boot-usbarmory
+dd if=u-boot.imx of=$TARGET_DEV bs=512 seek=2
+
+## Install system and kernel, set password
+echo "Installing system"
+mount ${TARGET_DEV}1 $TARGET_MNT
+rsync -a /armroot/ $TARGET_MNT
+echo "Installing kernel"
+cd /ua/linux-3.16.2/
+cp arch/arm/boot/uImage ${TARGET_MNT}/boot
+cp arch/arm/boot/dts/imx53-qsb.dtb ${TARGET_MNT}/boot/imx53-usbarmory.dtb
+make ARCH=arm INSTALL_MOD_PATH=$TARGET_MNT modules_install
+chroot /mnt passwd
+echo "Unmounting (flushing cache, can take some time)"
+umount $TARGET_MNT
+
+echo "USB armory image is now ready."

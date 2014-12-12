@@ -1,0 +1,5 @@
+#!/bin/sh -e
+modprobe g_ether
+/sbin/ifconfig usb0 10.0.0.1
+route add -net default gw 10.0.0.2
+exit 0
