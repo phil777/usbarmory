@@ -38,6 +38,7 @@ RUN chroot /armroot apt-get clean
 
 ADD inittab /armroot/etc/inittab
 ADD rc.local /armroot/etc/rc.local
+RUN chmod +x /armroot/etc/rc.local
 ADD hostname /armroot/etc/hostname
 ADD resolv.conf /armroot/etc/resolv.conf
 ADD sources.list /armroot/etc/apt/sources.list
