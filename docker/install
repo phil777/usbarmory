@@ -37,6 +37,7 @@ cd /ua/linux-3.16.2/
 cp arch/arm/boot/uImage ${TARGET_MNT}/boot
 cp arch/arm/boot/dts/imx53-qsb.dtb ${TARGET_MNT}/boot/imx53-usbarmory.dtb
 make ARCH=arm INSTALL_MOD_PATH=$TARGET_MNT modules_install
+sync
 chroot /mnt passwd
 echo "Unmounting (flushing cache, can take some time)"
 umount $TARGET_MNT
